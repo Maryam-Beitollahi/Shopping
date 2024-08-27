@@ -37,16 +37,22 @@ body,
 }
 .navbar {
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   background-color: var(--color--navbar);
   height: 5rem;
 }
 header h1 {
-  font-size: 2.2rem;
+  font-size: 1.5rem;
   margin-left: 3rem;
   color: black;
   font-family: "NotoSerif";
+}
+.box-title-header {
+  font-size: 2.2rem;
+  margin-top: 3rem;
+  text-align: center;
 }
 .nav__toggler {
   margin-left: 10rem;
@@ -58,12 +64,6 @@ header h1 {
   background-color: var(--color--primary);
   margin: 5px 0;
   border-radius: 5px;
-}
-.box h1 {
-  font-size: 4rem;
-  margin: 2rem 30rem;
-  margin-top: 3rem;
-  text-align: center;
 }
 .cart-btn {
   color: var(--color--primary);
@@ -81,13 +81,35 @@ header h1 {
   align-items: center;
   background: var(--mainRed);
   border-radius: 50%;
-  color: var(--mainWhite);
+  color: var(--color--primary);
 }
 .box__items {
   margin: 2rem 10rem;
   padding: 0.5rem 0.5rem;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
+}
+
+@media screen and (min-width: 1024px) {
+  .box__items {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 5rem;
+  }
+  header h1 {
+    font-size: 2.2rem;
+    margin-left: 3rem;
+  }
+  .box-title-header {
+    font-size: 3rem;
+  }
+  .cart{
+    left: 40%;
+  }
 }
 .box__item {
   margin: 2rem;
@@ -152,7 +174,6 @@ header h1 {
   transition: all 0.5s ease-in-out;
   top: -100%;
   position: absolute;
-  left: 35%;
 }
 .cart-title {
   text-align: center;
@@ -172,7 +193,7 @@ header h1 {
   width: 70px;
   background-position: left center;
   background-size: cover;
-} 
+}
 .cart-item-desc {
   display: flex;
   flex-direction: column;
@@ -223,14 +244,14 @@ header h1 {
   border-radius: 5px;
   color: var(--color--primary);
 }
-.fa-chevron-down{
-color: var(--color--chevron--down);
-cursor: pointer;
+.fa-chevron-down {
+  color: var(--color--chevron--down);
+  cursor: pointer;
 }
-.fa-chevron-up{
-color: var(--color--primary);
-cursor: pointer;
+.fa-chevron-up {
+  color: var(--color--primary);
+  cursor: pointer;
 }
-.fa-trash-alt{
+.fa-trash-alt {
   cursor: pointer;
 }

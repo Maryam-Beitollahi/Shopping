@@ -9,9 +9,9 @@ const cartContent = document.querySelector(".cart-content");
 const productsDOM = document.querySelector(".box__items");
 const clearCart = document.querySelector(".clear-cart");
 
-import { productsData } from "/products.js";
+import { productsData } from "/src/products.js";
 let cart = [];
-
+let buttonsDOM = [];
 //1.get products
 class Products {
   getProducts() {
@@ -34,21 +34,21 @@ class UI {
             <p class="detail__price">${item.price}</p>
           </div>
           <button class="btn--primary add-to-cart" type="submit" data-id=${item.id}>
-            <i class="fas fa-shopping-cart"></i>
-            add to cart
+            Add to cart
           </button>
         </div>`;
       productsDOM.innerHTML = result;
     });
   }
   getAddToCartBtns() {
-    const addToCartBtns = document.querySelectorAll(".add-to-cart"); //nodelist
-    const buttons = [...addToCartBtns]; //convert nodelist to array!!!!!
-    buttons.forEach((btn) => {
+    const addToCartBtns = [...document.querySelectorAll(".add-to-cart")]; //nodelist
+    ///////const buttons = [...addToCartBtns]; //convert nodelist to array!!!!!
+    buttonsDOM = addToCartBtns;
+    addToCartBtns.forEach((btn) => {
       const id = btn.dataset.id;
       //console.log(id);
       //check if this product id is in cart or not?
-      const isInCart = cart.find((product) => product.id === id); //
+      const isInCart = cart.find((product) => product.id === parseInt(id)); //
       if (isInCart) {
         btn.innerText = "In Cart";
         btn.disabled = true;
@@ -83,7 +83,7 @@ class UI {
     cartItems.innerText = tempCartItems;
   }
   addCartItem(cartItem) {
-    console.log(cartItem);
+    //console.log(cartItem);
     const div = document.createElement("div");
     div.classList.add("cart-item");
     div.innerHTML = `
@@ -93,11 +93,11 @@ class UI {
               <h5 class="cart-item-price">${cartItem.price}</h5>
             </div>
             <div class="cart-item-controller">
-              <i class="fas fa-chevron-up"></i>
+              <i class="fas fa-chevron-up" data-id=${cartItem.id}></i>
               <p>${cartItem.quantity}</p>
-              <i class="fas fa-chevron-down"></i>
+              <i class="fas fa-chevron-down" data-id=${cartItem.id}></i>
             </div>
-             <i class="far fa-trash-alt"></i>`;
+             <i class="far fa-trash-alt" data-id=${cartItem.id}></i>`;
     cartContent.appendChild(div);
   }
   setUpApp() {
@@ -108,6 +108,83 @@ class UI {
     //set values: price + items
     this.setCartValue(cart);
   }
+  cartLogic() {
+    //clear cart
+    clearCart.addEventListener("click", () => this.clearCart());
+    //cart functionality
+    cartContent.addEventListener("click", (event) => {
+      //console.log(event.target);
+      if (event.target.classList.contains("fa-chevron-up")) {
+        //console.log(event.target.dataset.id);
+        const addQuantitiy = event.target;
+        //get item from cart
+        const addedItem = cart.find(
+          (cartItem) => cartItem.id == addQuantitiy.dataset.id
+        );
+        addedItem.quantity++;
+        //update cart value
+        this.setCartValue(cart);
+        //save cart
+        Storage.saveCart(cart);
+        //update cart item in UI
+        //console.log(addQuantitiy.nextElementSibling);
+        addQuantitiy.nextElementSibling.innerText = addedItem.quantity;
+      } else if (event.target.classList.contains("fa-trash-alt")) {
+        const removeItem = event.target;
+        const _removedItem = cart.find(
+          (cart) => cart.id == removeItem.dataset.id
+        );
+        this.removeItem(_removedItem.id);
+        //update local storage
+        Storage.saveCart(cart);
+        //remove from cart item
+        cartContent.removeChild(removeItem.parentElement);
+      } else if (event.target.classList.contains("fa-chevron-down")) {
+        const subQuantity = event.target;
+        const substractedItem = cart.find(
+          (cart) => cart.id == subQuantity.dataset.id
+        );
+        if (substractedItem.quantity === 1) {
+          this.removeItem(substractedItem.id);
+          //console.log(subQuantity.parentElement.parentElement);
+          cartContent.removeChild(subQuantity.parentElement.parentElement);
+          return;
+        }
+        substractedItem.quantity--;
+        this.setCartValue(cart);
+        Storage.saveCart(cart);
+        subQuantity.previousElementSibling.innerText = substractedItem.quantity;
+      }
+    });
+  }
+  clearCart() {
+    //remove
+    cart.forEach((cartItem) => this.removeItem(cartItem.id));
+    //remove children's cart content
+    //console.log(cartContent.children);
+    while (cartContent.children.length) {
+      cartContent.removeChild(cartContent.children[0]);
+    }
+    closeModalFunction();
+  }
+  removeItem(id) {
+    //update cart
+    cart = cart.filter((cartItem) => cartItem.id !== id);
+    //total price and cart items
+    this.setCartValue(cart);
+    //update storage
+    Storage.saveCart(cart);
+    //get addtocart buttons and update text and disabled
+    //console.log(buttonsDOM);
+    this.getSingleButton(id);
+  }
+  getSingleButton(id) {
+    const button = buttonsDOM.find(
+      (btn) => parseInt(btn.dataset.id) === parseInt(id)
+    );
+    button.innerText = "Add to cart";
+    button.disabled = false;
+  }
 }
 document.addEventListener("DOMContentLoaded", () => {
   const products = new Products();
@@ -117,6 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ui.setUpApp();
   ui.displayProducts(productsData);
   ui.getAddToCartBtns();
+  ui.cartLogic();
   Storage.saveProducts(productsData); //because of static we don't need new Storage
   // console.log(productsData);
 });
@@ -127,7 +205,7 @@ class Storage {
   }
   static getProduct(id) {
     const _products = JSON.parse(localStorage.getItem("products"));
-    return _products.find((p) => (p.id = parseInt(id))); //returns an object!!!convert to number
+    return _products.find((p) => p.id === parseInt(id)); //returns an object!!!convert to number
   }
   static saveCart(cart) {
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -141,6 +219,7 @@ function showModalFunction() {
   backDrop.style.display = "block";
   cartModal.style.opacity = "1";
   cartModal.style.top = "20%";
+  cartModal.style.left = (winW/2)  - (550 * .5)+ "40%";
 }
 function closeModalFunction() {
   backDrop.style.display = "none";
@@ -151,4 +230,3 @@ function closeModalFunction() {
 cartBtn.addEventListener("click", showModalFunction);
 closeModal.addEventListener("click", closeModalFunction);
 backDrop.addEventListener("click", closeModalFunction);
-clearCart.addEventListener("click", closeModalFunction);
